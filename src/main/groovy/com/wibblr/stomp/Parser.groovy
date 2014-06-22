@@ -58,6 +58,11 @@ class Parser {
         // first line is the message command
         message.command = readLine(buffer)
 
+        // ...but there seems to be an additional newline
+        // in the second and subsequent messages
+        if (message.command == "")
+            message.command = readLine(buffer)
+
         // subsequent lines are the headers
         while (addHeader(message.headers, readLine(buffer)));
 

@@ -14,6 +14,7 @@ class Message {
 
     def String toString() {
         def sb = new StringBuffer()
+        sb.append("\n")
         sb.append(command)
         sb.append("\n")
         headers.each {
@@ -23,7 +24,7 @@ class Message {
             sb.append("\n")
         }
         sb.append("\n")
-        sb.append(body)
+        if (body != null) sb.append(body)
         sb.append("\0")
         sb.toString()
     }

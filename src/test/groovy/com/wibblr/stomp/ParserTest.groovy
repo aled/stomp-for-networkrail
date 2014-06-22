@@ -1,7 +1,6 @@
 package com.wibblr.stomp
 
 import groovy.transform.CompileStatic
-import org.junit.Assert
 
 @CompileStatic
 class ParserTest extends GroovyTestCase {
