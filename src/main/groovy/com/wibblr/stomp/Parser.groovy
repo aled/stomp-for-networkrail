@@ -15,22 +15,12 @@ import groovy.transform.CompileStatic
  */
 
 @CompileStatic
-class Parser extends Thread {
-    volatile boolean completed = false
+class Parser {
 
-    private InputStream stream
-    private MessageListener listener
-    private volatile boolean cancel = false
+    private BufferedInputStream buffer
 
-    public Parser(InputStream stream, MessageListener listener) {
-        this.stream = stream
-        this.listener = listener
-    }
-
-    def cancel() {
-        cancel = true
-        interrupt()
-        join(1000)
+    public Parser(InputStream stream) {
+        buffer = new BufferedInputStream(stream)
     }
 
     private String readLine(BufferedInputStream buffer) {
@@ -44,7 +34,7 @@ class Parser extends Thread {
     private String readUntil(BufferedInputStream buffer, byte terminator) {
         def baos = new ByteArrayOutputStream()
         int b = 0
-        while (!cancel && (b = buffer.read()) != terminator) {
+        while ((b = buffer.read()) != terminator) {
             if (b < 0) throw new EOFException()
             baos.write(b)
         };
@@ -62,33 +52,20 @@ class Parser extends Thread {
         return true
     }
 
-    public void run() {
-        def buffer = new BufferedInputStream(stream)
-        try {
-            while (!cancel) {
-                def message = new Message()
+    public Message readMessage() {
+        def message = new Message()
 
-                // first line is the message command
-                message.command = readLine(buffer)
+        // first line is the message command
+        message.command = readLine(buffer)
 
-                // subsequent lines are the headers
-                while (addHeader(message.headers, readLine(buffer)));
+        // subsequent lines are the headers
+        while (addHeader(message.headers, readLine(buffer)));
 
-                // blank line indicates end of headers; addHeader will return false
-                // body is up until the next \0 character (strictly if there is a content-length header
-                // we should use that; however Network Rail doesn't seem to use it.)
-                message.body = readBody(buffer)
+        // blank line indicates end of headers; addHeader will return false
+        // body is up until the next \0 character (strictly if there is a content-length header
+        // we should use that; however Network Rail doesn't seem to use it.)
+        message.body = readBody(buffer)
 
-                if (!cancel) {
-                    listener.messageReceived(message)
-                }
-            }
-        }
-        catch (Throwable t) {
-            if (!cancel) {
-                listener.exceptionRaised(t)
-            }
-        }
-        completed = true
+        return message
     }
 }

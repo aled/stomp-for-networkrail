@@ -9,7 +9,7 @@ import groovy.transform.CompileStatic
 @CompileStatic
 class Message {
     String command
-    HashMap<String, String> headers = new HashMap<String, String>()
+    Map<String, String> headers = new HashMap<String, String>()
     String body
 
     def String toString() {
@@ -26,5 +26,9 @@ class Message {
         sb.append(body)
         sb.append("\0")
         sb.toString()
+    }
+
+    def byte[] toBytes() {
+        toString().getBytes("UTF-8")
     }
 }
