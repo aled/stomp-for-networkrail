@@ -15,7 +15,6 @@ public class Connection implements MessageListener {
     private String username
     private String password
     private List<String> topics
-    private String connectionId = System.currentTimeMillis().toString()
     private Transport transport
     private int backoffSeconds = 1
 
@@ -26,7 +25,7 @@ public class Connection implements MessageListener {
     }
 
     public void start() {
-        transport = new Transport("localhost", 61618, this)
+        transport = new Transport("datafeeds.networkrail.co.uk", 61618, this)
         transport.start()
         System.out.println("Connection: logging in")
         transport.sendMessage(new Message(command:'CONNECT', headers:['client-id':'client-' + username, 'login':username, 'passcode':password]))
@@ -45,12 +44,12 @@ public class Connection implements MessageListener {
         if (message.command == 'CONNECTED') {
             backoffSeconds = 1
             topics.each {
-                transport.sendMessage(new Message(command:'SUBSCRIBE', headers:['destination':it, 'ack':'client', 'activemq.subscriptionName':username + '-' + connectionId + '-' + it]))
+                transport.sendMessage(new Message(command:'SUBSCRIBE', headers:['destination':it, 'ack':'client', 'activemq.subscriptionName':username + ':' + it]))
             }
         }
         else if (message.command == 'MESSAGE') {
+            String strMessage = message.toString()
             System.out.println(message.body)
-
             // for now, just acknowledge every message immediately
             transport.sendMessage(new Message(command:'ACK', headers: ['message-id':message.headers['message-id']]))
         }
