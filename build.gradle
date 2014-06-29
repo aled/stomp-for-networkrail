@@ -5,7 +5,7 @@ apply plugin: 'idea'
 apply plugin:'application'
 
 mainClassName = 'com.wibblr.networkrail.DataFeed'
-version = '0.1'
+version = '0.2'
 
 repositories {
     mavenCentral()
