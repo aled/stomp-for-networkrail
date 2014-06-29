@@ -27,7 +27,11 @@ class Transport {
 
     public void cancel() {
         cancel = true;
-        if (socket != null) socket.close()
+        if (socket != null) {
+            try { socket.getInputStream().close() } catch (Exception) {}
+            try { socket.getOutputStream().close() } catch (Exception) {}
+            try { socket.close() } catch (Exception) {}
+        }
     }
 
     public void start() {

@@ -1,6 +1,6 @@
 package com.wibblr.stomp;
 
-import groovy.transform.CompileStatic;
+import groovy.transform.CompileStatic
 
 /**
  * This class implements a persistent STOMP connection. The underlying
@@ -14,21 +14,29 @@ import groovy.transform.CompileStatic;
 public class Connection implements MessageListener {
     private String username
     private String password
+    private String clientId
     private List<String> topics
+    private MessageListener listener
     private Transport transport
     private int backoffSeconds = 1
 
-    public Connection(String username, String password, List<String> topics) {
+    public Connection(String username, String password, String clientId,  List<String> topics, MessageListener listener) {
         this.username = username
         this.password = password
+        this.clientId = clientId
         this.topics = topics
+        this.listener = listener
     }
 
     public void start() {
         transport = new Transport("datafeeds.networkrail.co.uk", 61618, this)
         transport.start()
         System.out.println("Connection: logging in")
-        transport.sendMessage(new Message(command:'CONNECT', headers:['client-id':'client-' + username, 'login':username, 'passcode':password]))
+        transport.sendMessage(new Message(command:'CONNECT', headers:['client-id':clientId, 'login':username, 'passcode':password]))
+    }
+
+    public void cancel() {
+        transport.cancel()
     }
 
     public void restart() {
@@ -48,8 +56,7 @@ public class Connection implements MessageListener {
             }
         }
         else if (message.command == 'MESSAGE') {
-            String strMessage = message.toString()
-            System.out.println(message.body)
+            listener.messageReceived(message)
             // for now, just acknowledge every message immediately
             transport.sendMessage(new Message(command:'ACK', headers: ['message-id':message.headers['message-id']]))
         }
