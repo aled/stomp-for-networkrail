@@ -60,19 +60,22 @@ public class DataFeed {
                     System.out.println(e.toString())
                 }
 
-                try {
-                    String rtppmForWeb = Rtppm.parseToWebJson(message)
-                    File rtppmFile = new File(rtppmForWebFilename)
-                    System.out.println(rtppmFile.getCanonicalFile().parent)
-                    File tempFile = new File(rtppmFile.getCanonicalFile().parent, "." + rtppmFile.name + "." + System.currentTimeMillis())
-                    BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(tempFile)))
-                    bw.write(rtppmForWeb)
-                    bw.flush()
-                    bw.close()
-                    tempFile.renameTo(rtppmFile)
-                }
-                catch (Exception e) {
-                    System.out.println(e.toString())
+                if (message.headers.containsKey("destination")
+                        && message.headers["destination"] == "/topic/RTPPM_ALL") {
+                    try {
+                        String rtppmForWeb = Rtppm.parseToWebJson(message)
+                        File rtppmFile = new File(rtppmForWebFilename)
+                        File tempFile = new File(rtppmFile.getCanonicalFile().parent, "." + rtppmFile.name + "." + System.currentTimeMillis())
+                        BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(tempFile)))
+                        bw.write(rtppmForWeb)
+                        bw.flush()
+                        bw.close()
+                        //System.out.println("renaming " + tempFile.canonicalPath + " to " + rtppmFile.canonicalPath)
+                        tempFile.renameTo(rtppmFile)
+                    }
+                    catch (Exception e) {
+                        e.printStackTrace(System.err)
+                    }
                 }
 
             }
@@ -91,6 +94,7 @@ public class DataFeed {
         //  /topic/TSR_ALL_ROUTE - temporary speed restrictions
         def connection = new Connection(username, password, clientId,
                 ["/topic/TRAIN_MVT_ALL_TOC", "/topic/TD_ALL_SIG_AREA", "/topic/RTPPM_ALL", "/topic/VSTP_ALL", "/topic/TSR_ALL_ROUTE"],
+                //["/topic/RTPPM_ALL"],
                 listener)
         connection.start()
 
